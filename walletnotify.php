@@ -51,7 +51,7 @@ CREATE TABLE `walletnotify` (
    `fee` decimal(14,8) DEFAULT NULL,
    `last_update` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
    PRIMARY KEY (`rowid`),
-   UNIQUE KEY `txid` (`txid`),
+   KEY `txid` (`txid`),
    KEY `confirmations` (`confirmations`),
    KEY `comment` (`comment`),
    KEY `account` (`account`),
