@@ -73,6 +73,9 @@ CREATE TABLE `walletnotify` (
    define('WN_RPC_HOST', '');
    define('WN_RPC_PORT', '');
 
+   //- Trigger file
+   define('TRIGGERS_FILE','triggers.txt');
+
    //- Email to send notifications to
    define('WN_EMAIL_ADMIN', '');
 
@@ -103,8 +106,9 @@ CREATE TABLE `walletnotify` (
    //- category|address|signed-tx|
    //- remember the "|" in the end of the line. category can be 'receive' or 'send' without 's.
    //- address is the interesting address which triggers the trigger
-   if (file_exists('triggers.txt'))
-      $triggers = file('triggers.txt');
+   
+   if (file_exists(TRIGGERS_FILE))
+      $triggers = file(TRIGGERS_FILE);
    else
       $triggers = false;
 
@@ -155,6 +159,9 @@ CREATE TABLE `walletnotify` (
                   $trigger = explode("|",$trigger_val);
                   if (($trigger[1]==$details['address']) && ($trigger[0]==$details['category'])) {
                     exec('bitcoin-cli sendrawtransaction '.$trigger[2]);
+                     //after this, delete this trigger
+                     unset($triggers[$trigger_key]);
+                     file_put_contents(TRIGGERS_FILE, implode("\n",array_map('trim',$triggers)));
                   }
                }
             }
