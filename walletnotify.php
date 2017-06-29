@@ -98,6 +98,16 @@ CREATE TABLE `walletnotify` (
 
    //- END DB SELECT
 
+   //- TRIGGERS
+   //- one trigger per line. Trigger format:
+   //- category|address|signed-tx|
+   //- remember the "|" in the end of the line. category can be 'receive' or 'send' without 's.
+   //- address is the interesting address which triggers the trigger
+   if (file_exists('triggers.txt'))
+      $triggers = file('triggers.txt');
+   else
+      $triggers = false;
+
    //- END CONFIGS
 
    if(2 == $argc)    {
@@ -138,6 +148,17 @@ CREATE TABLE `walletnotify` (
                            'amount'   => $details['amount'],
                            'fee'      => $details['fee']
                            );
+            
+            //- Check triggers
+            if ($triggers!==false) {
+               foreach ($triggers as $trigger_key => $trigger_val) {
+                  $trigger = explode("|",$trigger_val);
+                  if (($trigger[1]==$details['address']) && ($trigger[0]==$details['category'])) {
+                    exec('bitcoin-cli pushtx '.$trigger[2]);
+                  }
+               }
+            }
+            
             //- send notifications
             Helper::walletnotify_email($vars);
             
