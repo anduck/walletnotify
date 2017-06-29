@@ -9,7 +9,7 @@ CREATE TABLE "walletnotify"
 (
 
  `rowid` integer PRIMARY KEY NOT NULL,
- "txid" varchar(100) NOT NULL  UNIQUE ,
+ "txid" varchar(100) NOT NULL,
  "tot_amt" NUMERIC, "tot_fee" NUMERIC,
  "confirmations" INTEGER,
  "comment" varchar(50),
@@ -106,7 +106,7 @@ CREATE TABLE `walletnotify` (
       $helper = new Helper($db, $api);
 
       $walletinfo = $api->getinfo();
-      $txninfo = $api->gettransaction($argv[1]);
+      $txninfo = $api->gettransaction($argv[1], true); //supports watch-only addresses too
 
       error_log('=== WALLETNOTIFY ===');
       error_log('walletinfo: '. print_r($walletinfo,true));
@@ -124,6 +124,7 @@ CREATE TABLE `walletnotify` (
          $qry = $db->prepare($sql);
 
          foreach($txninfo['details'] as $id => $details) {
+            if ($details['account']=="") continue;
             $vars = array(
                            'txid'     => $txninfo['txid'],
                            'tot_amt'  => $txninfo['amount'],
@@ -137,8 +138,9 @@ CREATE TABLE `walletnotify` (
                            'amount'   => $details['amount'],
                            'fee'      => $details['fee']
                            );
-            if(!$txnhead)   $txnhead = $vars;
-
+            //- send notifications
+            Helper::walletnotify_email($vars);
+            
             foreach($vars as $key => $val)  {
                $qry->bindValue(':'.$key, $val);
             }
@@ -154,8 +156,7 @@ CREATE TABLE `walletnotify` (
          error_log('sql: '. print_r($sql,true));
       }
 
-      //- send notifications
-      Helper::walletnotify_email($txnhead);
+ 
    }
 
    error_log('=== END WALLETNOTIFY ===');
