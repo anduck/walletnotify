@@ -154,7 +154,7 @@ CREATE TABLE `walletnotify` (
                foreach ($triggers as $trigger_key => $trigger_val) {
                   $trigger = explode("|",$trigger_val);
                   if (($trigger[1]==$details['address']) && ($trigger[0]==$details['category'])) {
-                    exec('bitcoin-cli pushtx '.$trigger[2]);
+                    exec('bitcoin-cli sendrawtransaction '.$trigger[2]);
                   }
                }
             }
