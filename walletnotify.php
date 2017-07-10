@@ -19,7 +19,9 @@ CREATE TABLE "walletnotify"
  "category" varchar(20),
  "amount" NUMERIC,
  "fee" NUMERIC,
- "last_update" VARCHAR DEFAULT CURRENT_TIMESTAMP
+ "vout" NUMERIC,
+ "last_update" VARCHAR DEFAULT CURRENT_TIMESTAMP,
+ UNIQUE (txid, vout)
 );
 
 CREATE  INDEX "main"."idx_walletnotify_txid" ON "walletnotify" ("txid" ASC);
@@ -49,6 +51,7 @@ CREATE TABLE `walletnotify` (
    `category` varchar(50) DEFAULT NULL,
    `amount` decimal(14,8) DEFAULT NULL,
    `fee` decimal(14,8) DEFAULT NULL,
+   `vout` int(11) DEFAULT NULL,
    `last_update` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
    PRIMARY KEY (`rowid`),
    KEY `txid` (`txid`),
@@ -56,7 +59,8 @@ CREATE TABLE `walletnotify` (
    KEY `comment` (`comment`),
    KEY `account` (`account`),
    KEY `address` (`address`),
-   KEY `last_update` (`last_update`)
+   KEY `last_update` (`last_update`),
+   CONSTRAINT txid_vout UNIQUE (`txid`, `vout`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
  */
@@ -130,10 +134,10 @@ CREATE TABLE `walletnotify` (
 
          $sql =  "REPLACE INTO walletnotify ".
                      "(`txid`, `tot_amt`, `tot_fee`, `confirmations`, `comment`, `blocktime`, ".
-                     "`address`, `account`, `category`, `amount`, `fee`, `last_update`) ".
+                     "`address`, `account`, `category`, `amount`, `fee`, `vout`, `last_update`) ".
                      "VALUES ".
                      "(:txid, :tot_amt, :tot_fee, :confirmations, :comment, :blocktime, ".
-                     ":address, :account, :category, :amount, :fee, NOW())";
+                     ":address, :account, :category, :amount, :fee, :vout, NOW())";
 
          $qry = $db->prepare($sql);
 
@@ -150,7 +154,8 @@ CREATE TABLE `walletnotify` (
                            'address'  => $details['address'],
                            'category' => $details['category'],
                            'amount'   => $details['amount'],
-                           'fee'      => $details['fee']
+                           'fee'      => $details['fee'],
+                           'vout'     => $details['vout']
                            );
             
             //- Check triggers
